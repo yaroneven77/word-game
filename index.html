@@ -20,17 +20,18 @@
   /* Tabs */
   .tabs {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
     margin-bottom: 12px;
   }
   .tab {
-    flex: 1;
+    flex: 1 1 30%;
     font-family: inherit;
-    font-size: 17px;
+    font-size: 13.5px;
     font-weight: bold;
-    padding: 12px 8px;
+    padding: 10px 6px;
     border: none;
-    border-radius: 16px 16px 0 0;
+    border-radius: 14px 14px 0 0;
     background: rgba(255,255,255,0.5);
     color: #3b3b6d;
     cursor: pointer;
@@ -61,6 +62,7 @@
   .score { color: #2e9e5b; }
   .streak { color: #e8870c; }
   h1 { font-size: 22px; color: #5a4ad1; margin-bottom: 12px; }
+  .he-instr { font-size: 20px; color: #c0399b; font-weight: 700; margin: -6px 0 14px; text-align: center; }
 
   .picrow {
     display: flex;
@@ -161,6 +163,51 @@
     visibility: hidden;
   }
   .next:hover { background: #4838b8; }
+
+  /* ---- new game styles ---- */
+  .options button.letter { font-size: 30px; letter-spacing: 1px; text-transform: none; }
+  .sentence {
+    font-size: 27px;
+    font-weight: bold;
+    color: #4338ca;
+    line-height: 1.25;
+  }
+  .blankword {
+    font-size: 50px;
+    font-weight: bold;
+    color: #4338ca;
+    letter-spacing: 6px;
+    margin: -2px 0 8px;
+    user-select: none;
+    text-transform: lowercase;
+  }
+  .blankword .blank { color: #dc2626; }
+  .memboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 6px 0 4px;
+  }
+  .memcard {
+    aspect-ratio: 1 / 1;
+    font-family: inherit;
+    font-size: 30px;
+    font-weight: bold;
+    border: none;
+    border-radius: 14px;
+    background: #c7d2fe;
+    color: #4338ca;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: lowercase;
+  }
+  .memcard.word { font-size: 22px; }
+  .memcard.flipped { background: #fff7d6; }
+  .memcard.matched { background: #34d399; color: #fff; cursor: default; }
+  .memcard:active:not(.matched) { transform: scale(0.94); }
 </style>
 </head>
 <body>
@@ -168,6 +215,10 @@
     <div class="tabs">
       <button class="tab active" data-tab="g1">🖼️ Picture → Word</button>
       <button class="tab" data-tab="g2">📖 Word → Picture</button>
+      <button class="tab" data-tab="g3">🔤 First Sound</button>
+      <button class="tab" data-tab="g4">🧩 Missing Letter</button>
+      <button class="tab" data-tab="g5">📝 Sentences</button>
+      <button class="tab" data-tab="g6">🃏 Memory</button>
     </div>
 
     <div class="card">
@@ -177,7 +228,7 @@
           <span class="score">⭐ <span id="g1-score">0</span></span>
           <span class="streak">🔥 <span id="g1-streak">0</span></span>
         </div>
-        <h1>What is this? 🤔</h1>
+        <div class="he-instr" dir="rtl">מה זה?</div>
         <div class="picrow">
           <div class="picture" id="g1-stim">❓</div>
           <button class="speak" id="g1-speak" title="Say the word">🔊</button>
@@ -195,7 +246,7 @@
           <span class="score">⭐ <span id="g2-score">0</span></span>
           <span class="streak">🔥 <span id="g2-streak">0</span></span>
         </div>
-        <h1>Read it, then pick the picture! 📖</h1>
+        <div class="he-instr" dir="rtl">תקראו את זה, ואז תבחרו את התמונה!</div>
         <div class="picrow">
           <div class="wordtext" id="g2-stim">word</div>
           <button class="speak" id="g2-speak" title="Say the word">🔊</button>
@@ -205,6 +256,73 @@
         <div class="options pics" id="g2-options"></div>
         <div class="feedback" id="g2-feedback"></div>
         <button class="next" id="g2-next">Next ➡️</button>
+      </div>
+
+      <!-- GAME 3: see picture, pick the first letter/sound -->
+      <div class="game" id="g3">
+        <div class="topbar">
+          <span class="score">⭐ <span id="g3-score">0</span></span>
+          <span class="streak">🔥 <span id="g3-streak">0</span></span>
+        </div>
+        <div class="he-instr" dir="rtl">עם איזה צליל זה מתחיל?</div>
+        <div class="picrow">
+          <div class="picture" id="g3-stim">❓</div>
+          <button class="speak" id="g3-speak" title="Say the word">🔊</button>
+          <button class="speak heb-btn" id="g3-hebtn" title="Hebrew translation">עב</button>
+        </div>
+        <div class="hebrew" id="g3-he"></div>
+        <div class="options" id="g3-options"></div>
+        <div class="feedback" id="g3-feedback"></div>
+        <button class="next" id="g3-next">Next ➡️</button>
+      </div>
+
+      <!-- GAME 4: picture + word with a blank, pick the missing first letter -->
+      <div class="game" id="g4">
+        <div class="topbar">
+          <span class="score">⭐ <span id="g4-score">0</span></span>
+          <span class="streak">🔥 <span id="g4-streak">0</span></span>
+        </div>
+        <div class="he-instr" dir="rtl">בחר את האות החסרה!</div>
+        <div class="picrow">
+          <div class="picture" id="g4-stim">❓</div>
+          <button class="speak" id="g4-speak" title="Say the word">🔊</button>
+          <button class="speak heb-btn" id="g4-hebtn" title="Hebrew translation">עב</button>
+        </div>
+        <div class="blankword" id="g4-word"></div>
+        <div class="hebrew" id="g4-he"></div>
+        <div class="options" id="g4-options"></div>
+        <div class="feedback" id="g4-feedback"></div>
+        <button class="next" id="g4-next">Next ➡️</button>
+      </div>
+
+      <!-- GAME 5: read the sentence, pick the matching picture -->
+      <div class="game" id="g5">
+        <div class="topbar">
+          <span class="score">⭐ <span id="g5-score">0</span></span>
+          <span class="streak">🔥 <span id="g5-streak">0</span></span>
+        </div>
+        <div class="he-instr" dir="rtl">תקראו את זה, ואז תבחרו את התמונה!</div>
+        <div class="picrow">
+          <div class="sentence" id="g5-stim">…</div>
+          <button class="speak" id="g5-speak" title="Say the sentence">🔊</button>
+          <button class="speak heb-btn" id="g5-hebtn" title="Hebrew translation">עב</button>
+        </div>
+        <div class="hebrew" id="g5-he"></div>
+        <div class="options pics" id="g5-options"></div>
+        <div class="feedback" id="g5-feedback"></div>
+        <button class="next" id="g5-next">Next ➡️</button>
+      </div>
+
+      <!-- GAME 6: memory match (word card ↔ picture card) -->
+      <div class="game" id="g6">
+        <div class="topbar">
+          <span class="score">✅ <span id="g6-score">0</span>/6</span>
+          <span class="streak">🔁 <span id="g6-moves">0</span></span>
+        </div>
+        <div class="he-instr" dir="rtl">התאם את המילה לתמונה!</div>
+        <div class="memboard" id="g6-board"></div>
+        <div class="feedback" id="g6-feedback"></div>
+        <button class="next" id="g6-next">Play again 🔄</button>
       </div>
     </div>
   </div>
@@ -392,6 +510,245 @@
     newRound();
   }
 
+  /* ---------- data for the new phonics games (from Unit 3 PDF) ---------- */
+  // Pictures grouped by their starting sound (for "First Sound")
+  const PICS = {
+    "ant":"🐜","apple":"🍎",
+    "bat":"🦇","bag":"🎒","bed":"🛏️","bear":"🐻","bird":"🐦",
+    "cat":"🐱","cap":"🧢","cab":"🚕","cow":"🐄","cactus":"🌵","cake":"🎂",
+    "dog":"🐕","duck":"🦆","dolphin":"🐬","door":"🚪",
+    "egg":"🥚","elephant":"🐘","elevator":"🛗",
+    "goat":"🐐","giraffe":"🦒","gift":"🎁","gorilla":"🦍",
+    "hat":"🎩","hen":"🐔","horse":"🐴","hamburger":"🍔","hippo":"🦛",
+    "map":"🗺️","moon":"🌙","monkey":"🐵","mouse":"🐭","man":"👨",
+    "net":"🥅","nest":"🪺","nut":"🥜","nose":"👃",
+    "pen":"🖊️","pan":"🍳","pig":"🐷","pizza":"🍕",
+    "sun":"☀️","snake":"🐍","spider":"🕷️","snail":"🐌","sandals":"👡",
+    "tap":"🚰","tag":"🏷️","tiger":"🐯","tree":"🌳","taco":"🌮"
+  };
+
+  // CVC words for "Missing Letter"
+  const CVC = {
+    "cat":"🐱","cap":"🧢","cab":"🚕","bat":"🦇","bag":"🎒","bed":"🛏️",
+    "dad":"👨","dog":"🐕","egg":"🥚","hat":"🎩","hen":"🐔","map":"🗺️",
+    "man":"👨","net":"🥅","pen":"🖊️","pan":"🍳","sun":"☀️","tap":"🚰",
+    "tag":"🏷️","sad":"😢","mad":"😠","pig":"🐷","nut":"🥜","mat":"🟫"
+  };
+
+  // Sentences for "Sentences" game (each maps to a unique emoji picture)
+  const SENTENCES = {
+    "The cat has a hat.":"🐱🎩",
+    "The hen has an egg.":"🐔🥚",
+    "A bat is in the bag.":"🦇🎒",
+    "The cat is in bed.":"🐱🛏️",
+    "Sam has a cat.":"🧒🐱",
+    "The man has a map.":"👨🗺️",
+    "The dog has a pen.":"🐕🖊️",
+    "A pig is on a mat.":"🐷🟫"
+  };
+  const SENT_HE = {
+    "The cat has a hat.":"לֶחָתוּל יֵשׁ כּוֹבַע.",
+    "The hen has an egg.":"לַתַּרְנְגוֹלֶת יֵשׁ בֵּיצָה.",
+    "A bat is in the bag.":"עֲטַלֵּף נִמְצָא בַּתִּיק.",
+    "The cat is in bed.":"הֶחָתוּל בַּמִּיטָה.",
+    "Sam has a cat.":"לְסֶם יֵשׁ חָתוּל.",
+    "The man has a map.":"לָאִישׁ יֵשׁ מַפָּה.",
+    "The dog has a pen.":"לַכֶּלֶב יֵשׁ עֵט.",
+    "A pig is on a mat.":"חֲזִיר עַל מַחְצֶלֶת."
+  };
+
+  // Pairs for the Memory game
+  const MEM = { "cat":"🐱","hat":"🎩","hen":"🐔","bag":"🎒","pen":"🖊️","sun":"☀️" };
+
+  // extra Hebrew so the עב button works for every new picture
+  const HE_EXTRA = {
+    "cow":"פָּרָה","cactus":"קַקְטוּס","cake":"עוּגָה","bird":"צִיפּוֹר",
+    "dog":"כֶּלֶב","duck":"בַּרְוָוז","dolphin":"דּוֹלְפִין","door":"דֶּלֶת",
+    "goat":"עֵז","giraffe":"גִּ'ירָפָה","gift":"מַתָּנָה","gorilla":"גּוֹרִילָה",
+    "horse":"סוּס","hamburger":"הַמְבּוּרְגֶּר","hippo":"הִיפּוֹפּוֹטָם",
+    "moon":"יָרֵחַ","monkey":"קוֹף","mouse":"עַכְבָּר",
+    "net":"רֶשֶׁת","nest":"קֵן","nut":"אֱגוֹז","nose":"אַף",
+    "pig":"חֲזִיר","pizza":"פִּיצָה","sun":"שֶׁמֶשׁ","snake":"נָחָשׁ",
+    "spider":"עַכָּבִישׁ","snail":"חִלָּזוֹן","tiger":"נָמֵר","tree":"עֵץ","taco":"טָאקוֹ",
+    "ant":"נְמָלָה","apple":"תַּפּוּחַ","bear":"דֹּב","bed":"מִיטָה",
+    "egg":"בֵּיצָה","elephant":"פִּיל","elevator":"מַעֲלִית","hat":"כּוֹבַע",
+    "hen":"תַּרְנְגוֹלֶת","map":"מַפָּה","man":"אִישׁ","pen":"עֵט","pan":"מַחֲבַת",
+    "tap":"בֶּרֶז","tag":"תָּוִית","cat":"חָתוּל","cap":"כּוֹבַע מָצְחִיָּה","cab":"מוֹנִית",
+    "bat":"עֲטַלֵּף","bag":"תִּיק","mat":"מַחְצֶלֶת","sad":"עָצוּב","mad":"כּוֹעֵס","dad":"אַבָּא"
+  };
+  Object.assign(HE, HE_EXTRA);
+
+  /* ---------- helpers for the new games ---------- */
+  function popEl(el) {
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
+  }
+  function speakHebrewText(text) {
+    if (!text || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const plain = text.replace(/[\u0591-\u05C7]/g, "");
+    const u = new SpeechSynthesisUtterance(plain);
+    u.lang = "he-IL";
+    u.rate = 0.85;
+    if (hebrewVoice) u.voice = hebrewVoice;
+    window.speechSynthesis.speak(u);
+  }
+
+  /* ---------- generic multiple-choice game (3 tries, score, streak) ----------
+     opts: { keys, render(answer), answerOf(answer), makeOptions(answer),
+             speakOf(answer), heOf(answer) -> {text, speak} }            */
+  function makeChoiceGame(id, opts) {
+    const keys = opts.keys;
+    const optsEl = document.getElementById(id + "-options");
+    const fbEl = document.getElementById(id + "-feedback");
+    const nextBtn = document.getElementById(id + "-next");
+    const scoreEl = document.getElementById(id + "-score");
+    const streakEl = document.getElementById(id + "-streak");
+    const speakBtn = document.getElementById(id + "-speak");
+    const hebBtn = document.getElementById(id + "-hebtn");
+    const heEl = document.getElementById(id + "-he");
+
+    let score = 0, streak = 0, tries = 3, answer = "", answerVal = "";
+
+    function newRound() {
+      answer = keys[Math.floor(Math.random() * keys.length)];
+      tries = 3;
+      opts.render(answer);
+      answerVal = opts.answerOf(answer);
+
+      const choices = opts.makeOptions(answer);
+      optsEl.innerHTML = "";
+      choices.forEach(c => {
+        const b = document.createElement("button");
+        b.textContent = c.label;
+        if (c.cls) b.classList.add(c.cls);
+        b.dataset.val = c.value;
+        b.onclick = () => choose(b, c.value);
+        optsEl.appendChild(b);
+      });
+
+      fbEl.textContent = "❤️❤️❤️  3 tries";
+      fbEl.style.color = "#e8870c";
+      if (heEl) heEl.textContent = "";
+      nextBtn.style.visibility = "hidden";
+    }
+
+    function choose(btn, val) {
+      if (val === answerVal) {
+        optsEl.querySelectorAll("button").forEach(b => b.disabled = true);
+        btn.classList.add("correct");
+        score++; streak++;
+        fbEl.textContent = "🎉 Correct! Great job!";
+        fbEl.style.color = "#2e9e5b";
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+        nextBtn.style.visibility = "visible";
+        return;
+      }
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      tries--;
+      if (tries > 0) {
+        fbEl.textContent = "❤️".repeat(tries) + "🤍".repeat(3 - tries) + "  Try again!";
+        fbEl.style.color = "#e8870c";
+      } else {
+        streak = 0;
+        streakEl.textContent = streak;
+        optsEl.querySelectorAll("button").forEach(b => {
+          b.disabled = true;
+          if (b.dataset.val === String(answerVal)) b.classList.add("correct");
+        });
+        fbEl.textContent = "❌ The answer is shown 👇";
+        fbEl.style.color = "#dc2626";
+        nextBtn.style.visibility = "visible";
+      }
+    }
+
+    nextBtn.onclick = newRound;
+    speakBtn.onclick = () => say(opts.speakOf(answer));
+    hebBtn.onclick = () => {
+      const h = opts.heOf(answer);
+      if (heEl) heEl.textContent = h.text || "—";
+      if (h.speak) speakHebrewText(h.speak);
+    };
+    newRound();
+  }
+
+  /* ---------- memory match game ---------- */
+  function makeMemory(id) {
+    const board = document.getElementById(id + "-board");
+    const fb = document.getElementById(id + "-feedback");
+    const again = document.getElementById(id + "-next");
+    const scoreEl = document.getElementById(id + "-score");
+    const movesEl = document.getElementById(id + "-moves");
+    const keys = Object.keys(MEM);
+    let first = null, lock = false, matched = 0, moves = 0;
+
+    function build() {
+      matched = 0; moves = 0; first = null; lock = false;
+      scoreEl.textContent = 0;
+      movesEl.textContent = 0;
+      fb.textContent = "Find all 6 pairs! 🃏";
+      fb.style.color = "#e8870c";
+      again.style.visibility = "hidden";
+
+      const cards = [];
+      keys.forEach(k => {
+        cards.push({ k, face: k, type: "word" });
+        cards.push({ k, face: MEM[k], type: "pic" });
+      });
+      shuffle(cards);
+
+      board.innerHTML = "";
+      cards.forEach(c => {
+        const b = document.createElement("button");
+        b.className = "memcard " + c.type;
+        b.dataset.k = c.k;
+        b.dataset.face = c.face;
+        b.textContent = "❓";
+        b.onclick = () => flip(b);
+        board.appendChild(b);
+      });
+    }
+
+    function flip(b) {
+      if (lock || b.classList.contains("flipped") || b.classList.contains("matched")) return;
+      b.classList.add("flipped");
+      b.textContent = b.dataset.face;
+      if (b.classList.contains("word")) say(b.dataset.k);
+
+      if (!first) { first = b; return; }
+
+      moves++;
+      movesEl.textContent = moves;
+
+      if (first.dataset.k === b.dataset.k && first !== b) {
+        first.classList.add("matched");
+        b.classList.add("matched");
+        matched++;
+        scoreEl.textContent = matched;
+        first = null;
+        if (matched === keys.length) {
+          fb.textContent = "🎉 You found them all!";
+          fb.style.color = "#2e9e5b";
+          again.style.visibility = "visible";
+        }
+      } else {
+        lock = true;
+        const a = first;
+        first = null;
+        setTimeout(() => {
+          [a, b].forEach(x => { x.classList.remove("flipped"); x.textContent = "❓"; });
+          lock = false;
+        }, 850);
+      }
+    }
+
+    again.onclick = build;
+    build();
+  }
+
   /* ---------- tab switching ---------- */
   document.querySelectorAll(".tab").forEach(tab => {
     tab.onclick = () => {
@@ -403,9 +760,69 @@
     };
   });
 
-  /* ---------- start both games ---------- */
+  /* ---------- start all games ---------- */
   makeGame("g1", WORDS1, "pic2word");
   makeGame("g2", WORDS2, "word2pic");
+
+  // Game 3: First Sound — see a picture, pick the starting letter
+  const FIRST_KEYS = Object.keys(PICS);
+  const FIRST_LETTERS = [...new Set(FIRST_KEYS.map(k => k[0]))];
+  makeChoiceGame("g3", {
+    keys: FIRST_KEYS,
+    render(a) { const el = document.getElementById("g3-stim"); el.textContent = PICS[a]; popEl(el); },
+    answerOf(a) { return a[0]; },
+    makeOptions(a) {
+      const correct = a[0];
+      const distract = shuffle(FIRST_LETTERS.filter(l => l !== correct)).slice(0, 3);
+      return shuffle([correct, ...distract]).map(l => ({
+        label: l.toUpperCase() + l, value: l, cls: "letter"
+      }));
+    },
+    speakOf(a) { return a; },
+    heOf(a) { return { text: (HE[a] || "—") + "  —  " + a, speak: HE[a] || a }; }
+  });
+
+  // Game 4: Missing Letter — picture + word with a blank first letter
+  const CVC_KEYS = Object.keys(CVC);
+  const LETTER_POOL = ["c","b","d","h","m","n","p","s","t","g","r","f"];
+  makeChoiceGame("g4", {
+    keys: CVC_KEYS,
+    render(a) {
+      const el = document.getElementById("g4-stim");
+      el.textContent = CVC[a];
+      popEl(el);
+      const rest = a.slice(1).split("").join(" ");
+      document.getElementById("g4-word").innerHTML = '<span class="blank">_</span> ' + rest;
+    },
+    answerOf(a) { return a[0]; },
+    makeOptions(a) {
+      const correct = a[0];
+      const distract = shuffle(LETTER_POOL.filter(l => l !== correct)).slice(0, 3);
+      return shuffle([correct, ...distract]).map(l => ({
+        label: l.toUpperCase(), value: l, cls: "letter"
+      }));
+    },
+    speakOf(a) { return a; },
+    heOf(a) { return { text: (HE[a] || "—") + "  —  " + a, speak: HE[a] || a }; }
+  });
+
+  // Game 5: Sentences — read the sentence, pick the matching picture
+  const SENT_KEYS = Object.keys(SENTENCES);
+  makeChoiceGame("g5", {
+    keys: SENT_KEYS,
+    render(a) { const el = document.getElementById("g5-stim"); el.textContent = a; popEl(el); },
+    answerOf(a) { return SENTENCES[a]; },
+    makeOptions(a) {
+      const correct = SENTENCES[a];
+      const others = shuffle(SENT_KEYS.filter(s => s !== a).map(s => SENTENCES[s])).slice(0, 5);
+      return shuffle([correct, ...others]).map(emoji => ({ label: emoji, value: emoji }));
+    },
+    speakOf(a) { return a; },
+    heOf(a) { return { text: SENT_HE[a] || "—", speak: SENT_HE[a] || "" }; }
+  });
+
+  // Game 6: Memory
+  makeMemory("g6");
 </script>
 </body>
 </html>
