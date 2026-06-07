@@ -152,6 +152,7 @@
   let score = 0;
   let streak = 0;
   let answer = "";
+  let triesLeft = 3;
 
   const picEl = document.getElementById("picture");
   const optsEl = document.getElementById("options");
@@ -175,6 +176,7 @@
 
   function newRound() {
     answer = wordList[Math.floor(Math.random() * wordList.length)];
+    triesLeft = 3;
     picEl.textContent = WORDS[answer];
     picEl.style.animation = "none";
     void picEl.offsetWidth;
@@ -189,30 +191,47 @@
       optsEl.appendChild(btn);
     });
 
-    fbEl.textContent = "";
+    fbEl.textContent = "❤️❤️❤️  3 tries";
+    fbEl.style.color = "#e8870c";
     nextBtn.style.visibility = "hidden";
   }
 
   function choose(btn, word) {
-    const buttons = optsEl.querySelectorAll("button");
-    buttons.forEach(b => b.disabled = true);
-
     if (word === answer) {
+      optsEl.querySelectorAll("button").forEach(b => b.disabled = true);
       btn.classList.add("correct");
       score++;
       streak++;
       fbEl.textContent = "🎉 Correct! Great job!";
       fbEl.style.color = "#2e9e5b";
-    } else {
-      btn.classList.add("wrong");
-      streak = 0;
-      fbEl.textContent = "❌ Oops! The word is below 👇";
-      fbEl.style.color = "#dc2626";
-      buttons.forEach(b => { if (b.textContent === answer) b.classList.add("correct"); });
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      nextBtn.style.visibility = "visible";
+      return;
     }
-    scoreEl.textContent = score;
-    streakEl.textContent = streak;
-    nextBtn.style.visibility = "visible";
+
+    // wrong answer
+    btn.classList.add("wrong");
+    btn.disabled = true;
+    triesLeft--;
+
+    if (triesLeft > 0) {
+      const hearts = "❤️".repeat(triesLeft) + "🤍".repeat(3 - triesLeft);
+      fbEl.textContent = hearts + "  Try again!";
+      fbEl.style.color = "#e8870c";
+    } else {
+      // out of tries: reveal answer
+      streak = 0;
+      streakEl.textContent = streak;
+      const buttons = optsEl.querySelectorAll("button");
+      buttons.forEach(b => {
+        b.disabled = true;
+        if (b.textContent === answer) b.classList.add("correct");
+      });
+      fbEl.textContent = "❌ The word is below 👇";
+      fbEl.style.color = "#dc2626";
+      nextBtn.style.visibility = "visible";
+    }
   }
 
   nextBtn.onclick = newRound;
