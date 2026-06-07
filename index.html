@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Guess the Word! 🎉</title>
+<title>Word Games! 🎉</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -15,48 +15,92 @@
     justify-content: center;
     padding: 16px;
   }
+  .wrap { width: 100%; max-width: 480px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab {
+    flex: 1;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: bold;
+    padding: 12px 8px;
+    border: none;
+    border-radius: 16px 16px 0 0;
+    background: rgba(255,255,255,0.5);
+    color: #3b3b6d;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .tab.active { background: #fff; color: #5a4ad1; }
+  .tab:active { transform: scale(0.97); }
+
   .card {
     background: #fff;
     border-radius: 28px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-    padding: 28px 24px 32px;
-    width: 100%;
-    max-width: 480px;
+    padding: 24px 24px 30px;
     text-align: center;
   }
+  .game { display: none; }
+  .game.active { display: block; }
+
   .topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-size: 20px;
     font-weight: bold;
     color: #555;
   }
   .score { color: #2e9e5b; }
   .streak { color: #e8870c; }
-  h1 {
-    font-size: 24px;
-    color: #5a4ad1;
-    margin-bottom: 14px;
-  }
-  .picture {
-    font-size: 120px;
-    line-height: 1.1;
-    margin: 10px 0 18px;
-    user-select: none;
-    animation: pop 0.4s ease;
-  }
+  h1 { font-size: 22px; color: #5a4ad1; margin-bottom: 12px; }
+
   .picrow {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
+    margin: 6px 0 14px;
+  }
+  .picture {
+    font-size: 110px;
+    line-height: 1.1;
+    user-select: none;
+  }
+  .wordtext {
+    font-size: 64px;
+    font-weight: bold;
+    color: #4338ca;
+    letter-spacing: 3px;
+    text-transform: lowercase;
+    user-select: none;
+  }
+  .hebrew {
+    min-height: 30px;
+    font-size: 26px;
+    font-weight: bold;
+    color: #0e7490;
+    margin: -4px 0 10px;
+    direction: rtl;
+  }
+  .pop { animation: pop 0.4s ease; }
+  @keyframes pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    70% { transform: scale(1.12); }
+    100% { transform: scale(1); opacity: 1; }
   }
   .speak {
-    font-size: 30px;
-    width: 58px;
-    height: 58px;
+    font-size: 28px;
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
     border: none;
     border-radius: 50%;
     background: #ffd24d;
@@ -66,11 +110,14 @@
   }
   .speak:hover { background: #ffc721; }
   .speak:active { transform: scale(0.9); }
-  @keyframes pop {
-    0% { transform: scale(0.4); opacity: 0; }
-    70% { transform: scale(1.12); }
-    100% { transform: scale(1); opacity: 1; }
+  .heb-btn {
+    background: #7dd3fc;
+    font-size: 22px;
+    font-weight: bold;
+    color: #0c4a6e;
   }
+  .heb-btn:hover { background: #38bdf8; }
+
   .options {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -81,7 +128,7 @@
     font-family: inherit;
     font-size: 22px;
     font-weight: bold;
-    padding: 16px 10px;
+    padding: 14px 10px;
     border: none;
     border-radius: 18px;
     background: #f0f1ff;
@@ -90,6 +137,7 @@
     transition: transform 0.1s, background 0.2s;
     text-transform: capitalize;
   }
+  .options.pics button { font-size: 44px; }
   .options button:hover:not(:disabled) { background: #e0e2ff; transform: translateY(-2px); }
   .options button:active:not(:disabled) { transform: scale(0.96); }
   .options button.correct { background: #34d399 !important; color: #fff; animation: shake-good 0.4s; }
@@ -97,14 +145,10 @@
   .options button:disabled { cursor: default; opacity: 0.85; }
   @keyframes shake-good { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
   @keyframes shake-bad { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
-  .feedback {
-    min-height: 34px;
-    font-size: 26px;
-    font-weight: bold;
-    margin-top: 16px;
-  }
+
+  .feedback { min-height: 34px; font-size: 24px; font-weight: bold; margin-top: 14px; }
   .next {
-    margin-top: 14px;
+    margin-top: 12px;
     font-family: inherit;
     font-size: 20px;
     font-weight: bold;
@@ -120,47 +164,96 @@
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="topbar">
-      <span class="score">⭐ <span id="score">0</span></span>
-      <span class="streak">🔥 <span id="streak">0</span></span>
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="g1">🖼️ Picture → Word</button>
+      <button class="tab" data-tab="g2">📖 Word → Picture</button>
     </div>
-    <h1>What is this? 🤔</h1>
-    <div class="picrow">
-      <div class="picture" id="picture">❓</div>
-      <button class="speak" id="speakBtn" title="Say the word">🔊</button>
+
+    <div class="card">
+      <!-- GAME 1: see picture, pick the word -->
+      <div class="game active" id="g1">
+        <div class="topbar">
+          <span class="score">⭐ <span id="g1-score">0</span></span>
+          <span class="streak">🔥 <span id="g1-streak">0</span></span>
+        </div>
+        <h1>What is this? 🤔</h1>
+        <div class="picrow">
+          <div class="picture" id="g1-stim">❓</div>
+          <button class="speak" id="g1-speak" title="Say the word">🔊</button>
+          <button class="speak heb-btn" id="g1-hebtn" title="Hebrew translation">עב</button>
+        </div>
+        <div class="hebrew" id="g1-he"></div>
+        <div class="options" id="g1-options"></div>
+        <div class="feedback" id="g1-feedback"></div>
+        <button class="next" id="g1-next">Next ➡️</button>
+      </div>
+
+      <!-- GAME 2: read the word, pick the picture -->
+      <div class="game" id="g2">
+        <div class="topbar">
+          <span class="score">⭐ <span id="g2-score">0</span></span>
+          <span class="streak">🔥 <span id="g2-streak">0</span></span>
+        </div>
+        <h1>Read it, then pick the picture! 📖</h1>
+        <div class="picrow">
+          <div class="wordtext" id="g2-stim">word</div>
+          <button class="speak" id="g2-speak" title="Say the word">🔊</button>
+          <button class="speak heb-btn" id="g2-hebtn" title="Hebrew translation">עב</button>
+        </div>
+        <div class="hebrew" id="g2-he"></div>
+        <div class="options pics" id="g2-options"></div>
+        <div class="feedback" id="g2-feedback"></div>
+        <button class="next" id="g2-next">Next ➡️</button>
+      </div>
     </div>
-    <div class="options" id="options"></div>
-    <div class="feedback" id="feedback"></div>
-    <button class="next" id="nextBtn">Next ➡️</button>
   </div>
 
 <script>
-  // word -> emoji "picture"
-  const WORDS = {
-    "dog": "🐕", "old": "👴", "hungry": "😋", "sun": "☀️", "goat": "🐐",
-    "bear": "🐻", "young": "👶", "milkshake": "🥤", "moon": "🌙", "soft": "🧸",
-    "horse": "🐴", "slow": "🐢", "hippo": "🦛", "bird": "🐦", "sleeping": "😴",
-    "duck": "🦆", "fast": "🏃", "deer": "🦌", "dolphin": "🐬", "sandals": "👡",
-    "giraffe": "🦒", "fat": "🐷", "thin": "🦴", "sheep": "🐑", "spider": "🕷️",
-    "elevator": "🛗", "lion": "🦁", "small": "🐜", "big": "🐘", "cow": "🐮",
-    "mouse": "🐭", "monkey": "🐵", "happy": "😄", "snail": "🐌", "elephant": "🐘",
-    "cactus": "🌵"
+  /* ---------- word lists ---------- */
+  // Game 1: picture-guessing words
+  const WORDS1 = {
+    "dog":"🐕","old":"👴","hungry":"😋","sun":"☀️","goat":"🐐",
+    "bear":"🐻","young":"👶","milkshake":"🥤","moon":"🌙","soft":"🧸",
+    "horse":"🐴","slow":"🐢","hippo":"🦛","bird":"🐦","sleeping":"😴",
+    "duck":"🦆","fast":"🏃","deer":"🦌","dolphin":"🐬","sandals":"👡",
+    "giraffe":"🦒","fat":"🐷","thin":"🦴","sheep":"🐑","spider":"🕷️",
+    "elevator":"🛗","lion":"🦁","small":"🐜","big":"🐘","cow":"🐮",
+    "mouse":"🐭","monkey":"🐵","happy":"😄","snail":"🐌","elephant":"🐘","cactus":"🌵"
   };
 
-  const wordList = Object.keys(WORDS);
-  let score = 0;
-  let streak = 0;
-  let answer = "";
-  let triesLeft = 3;
+  // Game 2: phonics / reading words (duplicate "hen" removed)
+  const WORDS2 = {
+    "dad":"👨","mad":"😠","bag":"🎒","gap":"🕳️","beg":"🙏",
+    "cat":"🐱","pam":"👩","egg":"🥚","hat":"🎩","can":"🥫",
+    "ten":"🔟","pan":"🍳","bad":"👎","pen":"🖊️","has":"🤲",
+    "pat":"🙋","cab":"🚕","dan":"👦","hen":"🐔","the":"🔤",
+    "nat":"🧒","ant":"🐜","sad":"😢","tag":"🏷️","is":"🟰",
+    "nag":"😤","bat":"🦇","net":"🥅","in":"📥","bed":"🛏️",
+    "tap":"🚰","sat":"🪑","pet":"🐶","on":"🔛"
+  };
 
-  const picEl = document.getElementById("picture");
-  const optsEl = document.getElementById("options");
-  const fbEl = document.getElementById("feedback");
-  const nextBtn = document.getElementById("nextBtn");
-  const scoreEl = document.getElementById("score");
-  const streakEl = document.getElementById("streak");
+  /* ---------- Hebrew translations ---------- */
+  const HE = {
+    // game 1
+    "dog":"כֶּלֶב","old":"זָקֵן","hungry":"רָעֵב","sun":"שֶׁמֶשׁ","goat":"עֵז",
+    "bear":"דֹּב","young":"צָעִיר","milkshake":"מִילְקְשֵׁייק","moon":"יָרֵחַ","soft":"רַךְ",
+    "horse":"סוּס","slow":"אִיטִי","hippo":"הִיפּוֹפּוֹטָם","bird":"צִיפּוֹר","sleeping":"יָשֵׁן",
+    "duck":"בַּרְוָוז","fast":"מָהִיר","deer":"אַיָּל","dolphin":"דּוֹלְפִין","sandals":"סַנְדָּלִים",
+    "giraffe":"גִּ'ירָפָה","fat":"שָׁמֵן","thin":"רָזֶה","sheep":"כִּבְשָׂה","spider":"עַכָּבִישׁ",
+    "elevator":"מַעֲלִית","lion":"אַרְיֵה","small":"קָטָן","big":"גָּדוֹל","cow":"פָּרָה",
+    "mouse":"עַכְבָּר","monkey":"קוֹף","happy":"שָׂמֵחַ","snail":"חִלָּזוֹן","elephant":"פִּיל","cactus":"קַקְטוּס",
+    // game 2
+    "dad":"אַבָּא","mad":"כּוֹעֵס","bag":"תִּיק","gap":"רֶוַוח","beg":"לְהִתְחַנֵּן",
+    "cat":"חָתוּל","pam":"פַּאם","egg":"בֵּיצָה","hat":"כּוֹבַע","can":"פַּחִית",
+    "ten":"עֶשֶׂר","pan":"מַחֲבַת","bad":"רַע","pen":"עֵט","has":"יֵשׁ לוֹ",
+    "pat":"פַּט","cab":"מוֹנִית","dan":"דָּן","hen":"תַּרְנְגוֹלֶת","the":"הַ (תָּוִית)",
+    "nat":"נָט","ant":"נְמָלָה","sad":"עָצוּב","tag":"תָּוִית","is":"זֶה/הוּא",
+    "nag":"לְנַדְנֵד","bat":"עֲטַלֵּף","net":"רֶשֶׁת","in":"בְּתוֹךְ","bed":"מִיטָה",
+    "tap":"בֶּרֶז","sat":"יָשַׁב","pet":"חַיַּת מַחְמָד","on":"עַל"
+  };
 
+  /* ---------- shared helpers ---------- */
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -169,105 +262,150 @@
     return arr;
   }
 
-  function pick(n, exclude) {
-    const pool = wordList.filter(w => w !== exclude);
-    return shuffle(pool).slice(0, n);
-  }
-
-  function newRound() {
-    answer = wordList[Math.floor(Math.random() * wordList.length)];
-    triesLeft = 3;
-    picEl.textContent = WORDS[answer];
-    picEl.style.animation = "none";
-    void picEl.offsetWidth;
-    picEl.style.animation = "pop 0.4s ease";
-
-    const choices = shuffle([answer, ...pick(5, answer)]);
-    optsEl.innerHTML = "";
-    choices.forEach(word => {
-      const btn = document.createElement("button");
-      btn.textContent = word;
-      btn.onclick = () => choose(btn, word);
-      optsEl.appendChild(btn);
-    });
-
-    fbEl.textContent = "❤️❤️❤️  3 tries";
-    fbEl.style.color = "#e8870c";
-    nextBtn.style.visibility = "hidden";
-  }
-
-  function choose(btn, word) {
-    if (word === answer) {
-      optsEl.querySelectorAll("button").forEach(b => b.disabled = true);
-      btn.classList.add("correct");
-      score++;
-      streak++;
-      fbEl.textContent = "🎉 Correct! Great job!";
-      fbEl.style.color = "#2e9e5b";
-      scoreEl.textContent = score;
-      streakEl.textContent = streak;
-      nextBtn.style.visibility = "visible";
-      return;
-    }
-
-    // wrong answer
-    btn.classList.add("wrong");
-    btn.disabled = true;
-    triesLeft--;
-
-    if (triesLeft > 0) {
-      const hearts = "❤️".repeat(triesLeft) + "🤍".repeat(3 - triesLeft);
-      fbEl.textContent = hearts + "  Try again!";
-      fbEl.style.color = "#e8870c";
-    } else {
-      // out of tries: reveal answer
-      streak = 0;
-      streakEl.textContent = streak;
-      const buttons = optsEl.querySelectorAll("button");
-      buttons.forEach(b => {
-        b.disabled = true;
-        if (b.textContent === answer) b.classList.add("correct");
-      });
-      fbEl.textContent = "❌ The word is below 👇";
-      fbEl.style.color = "#dc2626";
-      nextBtn.style.visibility = "visible";
-    }
-  }
-
-  nextBtn.onclick = newRound;
-
   let femaleVoice = null;
+  let hebrewVoice = null;
   function loadVoice() {
     const voices = window.speechSynthesis.getVoices();
-    const prefer = [
-      "Google US English", "Microsoft Aria", "Microsoft Zira", "Microsoft Jenny",
-      "Samantha", "Karen", "Moira", "Tessa", "Female"
-    ];
+    const prefer = ["Google US English","Microsoft Aria","Microsoft Zira","Microsoft Jenny",
+      "Samantha","Karen","Moira","Tessa","Female"];
     const en = voices.filter(v => /en/i.test(v.lang));
     for (const name of prefer) {
       const m = en.find(v => v.name.includes(name));
-      if (m) { femaleVoice = m; return; }
+      if (m) { femaleVoice = m; break; }
     }
-    femaleVoice = en[0] || voices[0] || null;
+    if (!femaleVoice) femaleVoice = en[0] || voices[0] || null;
+    // Hebrew voice (Carmit on Apple devices, or any he-* voice)
+    hebrewVoice = voices.find(v => v.name.includes("Carmit")) ||
+                  voices.find(v => /^he/i.test(v.lang)) || null;
   }
   if ("speechSynthesis" in window) {
     loadVoice();
     window.speechSynthesis.onvoiceschanged = loadVoice;
   }
-
-  function speakWord() {
-    if (!answer || !("speechSynthesis" in window)) return;
+  function say(word) {
+    if (!word || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(answer);
+    const u = new SpeechSynthesisUtterance(word);
     u.lang = "en-US";
     u.rate = 0.85;
     u.pitch = 1.25;
     if (femaleVoice) u.voice = femaleVoice;
     window.speechSynthesis.speak(u);
   }
-  document.getElementById("speakBtn").onclick = speakWord;
+  function sayHebrew(word) {
+    const heb = HE[word];
+    if (!heb || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    // strip vowel niqqud for cleaner TTS
+    const plain = heb.replace(/[\u0591-\u05C7]/g, "");
+    const u = new SpeechSynthesisUtterance(plain);
+    u.lang = "he-IL";
+    u.rate = 0.85;
+    if (hebrewVoice) u.voice = hebrewVoice;
+    window.speechSynthesis.speak(u);
+  }
 
-  newRound();
+  /* ---------- generic game factory ----------
+     mode "pic2word": stimulus = emoji picture, options = words
+     mode "word2pic": stimulus = word text,    options = emoji pictures
+  */
+  function makeGame(id, words, mode) {
+    const keys = Object.keys(words);
+    const stimEl = document.getElementById(id + "-stim");
+    const optsEl = document.getElementById(id + "-options");
+    const fbEl = document.getElementById(id + "-feedback");
+    const nextBtn = document.getElementById(id + "-next");
+    const scoreEl = document.getElementById(id + "-score");
+    const streakEl = document.getElementById(id + "-streak");
+    const speakBtn = document.getElementById(id + "-speak");
+    const hebBtn = document.getElementById(id + "-hebtn");
+    const heEl = document.getElementById(id + "-he");
+
+    let score = 0, streak = 0, answer = "", tries = 3;
+
+    function pick(n, exclude) {
+      return shuffle(keys.filter(w => w !== exclude)).slice(0, n);
+    }
+
+    function newRound() {
+      answer = keys[Math.floor(Math.random() * keys.length)];
+      tries = 3;
+
+      // show stimulus
+      stimEl.textContent = (mode === "pic2word") ? words[answer] : answer;
+      stimEl.classList.remove("pop");
+      void stimEl.offsetWidth;
+      stimEl.classList.add("pop");
+
+      const choices = shuffle([answer, ...pick(5, answer)]);
+      optsEl.innerHTML = "";
+      choices.forEach(word => {
+        const btn = document.createElement("button");
+        // option label: word text, or its emoji picture
+        btn.textContent = (mode === "pic2word") ? word : words[word];
+        btn.dataset.word = word;
+        btn.onclick = () => choose(btn, word);
+        optsEl.appendChild(btn);
+      });
+
+      fbEl.textContent = "❤️❤️❤️  3 tries";
+      fbEl.style.color = "#e8870c";
+      heEl.textContent = "";
+      nextBtn.style.visibility = "hidden";
+    }
+
+    function choose(btn, word) {
+      if (word === answer) {
+        optsEl.querySelectorAll("button").forEach(b => b.disabled = true);
+        btn.classList.add("correct");
+        score++; streak++;
+        fbEl.textContent = "🎉 Correct! Great job!";
+        fbEl.style.color = "#2e9e5b";
+        scoreEl.textContent = score;
+        streakEl.textContent = streak;
+        nextBtn.style.visibility = "visible";
+        return;
+      }
+      // wrong
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      tries--;
+      if (tries > 0) {
+        fbEl.textContent = "❤️".repeat(tries) + "🤍".repeat(3 - tries) + "  Try again!";
+        fbEl.style.color = "#e8870c";
+      } else {
+        streak = 0;
+        streakEl.textContent = streak;
+        optsEl.querySelectorAll("button").forEach(b => {
+          b.disabled = true;
+          if (b.dataset.word === answer) b.classList.add("correct");
+        });
+        fbEl.textContent = "❌ The answer is shown 👇";
+        fbEl.style.color = "#dc2626";
+        nextBtn.style.visibility = "visible";
+      }
+    }
+
+    nextBtn.onclick = newRound;
+    speakBtn.onclick = () => say(answer);
+    hebBtn.onclick = () => { heEl.textContent = HE[answer] || "—"; sayHebrew(answer); };
+    newRound();
+  }
+
+  /* ---------- tab switching ---------- */
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".game").forEach(g => g.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.tab).classList.add("active");
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    };
+  });
+
+  /* ---------- start both games ---------- */
+  makeGame("g1", WORDS1, "pic2word");
+  makeGame("g2", WORDS2, "word2pic");
 </script>
 </body>
 </html>
