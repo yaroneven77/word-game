@@ -620,11 +620,12 @@
     const hebBtn = document.getElementById(id + "-hebtn");
     const heEl = document.getElementById(id + "-he");
 
-    let score = 0, streak = 0, tries = 3, answer = "", answerVal = "";
+    const maxTries = opts.tries || 3;
+    let score = 0, streak = 0, tries = maxTries, answer = "", answerVal = "";
 
     function newRound() {
       answer = keys[Math.floor(Math.random() * keys.length)];
-      tries = 3;
+      tries = maxTries;
       opts.render(answer);
       answerVal = opts.answerOf(answer);
 
@@ -639,7 +640,7 @@
         optsEl.appendChild(b);
       });
 
-      fbEl.textContent = "❤️❤️❤️  3 tries";
+      fbEl.textContent = "❤️".repeat(maxTries) + "  " + maxTries + " tries";
       fbEl.style.color = "#e8870c";
       if (heEl) heEl.textContent = "";
       nextBtn.style.visibility = "hidden";
@@ -662,7 +663,7 @@
       btn.disabled = true;
       tries--;
       if (tries > 0) {
-        fbEl.textContent = "❤️".repeat(tries) + "🤍".repeat(3 - tries) + "  Try again!";
+        fbEl.textContent = "❤️".repeat(tries) + "🤍".repeat(maxTries - tries) + "  Try again!";
         fbEl.style.color = "#e8870c";
       } else {
         streak = 0;
@@ -786,6 +787,7 @@
   const FIRST_LETTERS = [...new Set(FIRST_KEYS.map(k => k[0]))];
   makeChoiceGame("g3", {
     keys: FIRST_KEYS,
+    tries: 2,
     render(a) { const el = document.getElementById("g3-stim"); el.textContent = PICS[a]; popEl(el); },
     answerOf(a) { return a[0]; },
     makeOptions(a) {
@@ -804,6 +806,7 @@
   const LETTER_POOL = ["c","b","d","h","m","n","p","s","t","g","r","f"];
   makeChoiceGame("g4", {
     keys: CVC_KEYS,
+    tries: 2,
     render(a) {
       const el = document.getElementById("g4-stim");
       el.textContent = CVC[a];
