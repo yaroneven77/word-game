@@ -769,6 +769,26 @@
     build();
   }
 
+  /* ---------- per-game analytics ---------- */
+  const GAME_NAMES = {
+    g1: "Picture-to-Word",
+    g2: "Word-to-Picture",
+    g3: "First-Sound",
+    g4: "Missing-Letter",
+    g5: "Sentences",
+    g6: "Memory"
+  };
+  function trackGame(tabId) {
+    const name = GAME_NAMES[tabId] || tabId;
+    if (window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({
+        path: "game/" + tabId + "-" + name,
+        title: "Game: " + name,
+        event: true
+      });
+    }
+  }
+
   /* ---------- tab switching ---------- */
   document.querySelectorAll(".tab").forEach(tab => {
     tab.onclick = () => {
@@ -777,8 +797,12 @@
       tab.classList.add("active");
       document.getElementById(tab.dataset.tab).classList.add("active");
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      trackGame(tab.dataset.tab);
     };
   });
+
+  // Count the first game (shown by default on load)
+  window.addEventListener("load", () => setTimeout(() => trackGame("g1"), 800));
 
   /* ---------- start all games ---------- */
   makeGame("g1", WORDS1, "pic2word");
