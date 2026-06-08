@@ -655,6 +655,7 @@
         scoreEl.textContent = score;
         streakEl.textContent = streak;
         nextBtn.style.visibility = "visible";
+        if (opts.onCorrect) opts.onCorrect(answer);
         return;
       }
       btn.classList.add("wrong");
@@ -819,7 +820,13 @@
       }));
     },
     speakOf(a) { return a; },
-    heOf(a) { return { text: (HE[a] || "—") + "  —  " + a, speak: HE[a] || a }; }
+    heOf(a) { return { text: (HE[a] || "—") + "  —  " + a, speak: HE[a] || a }; },
+    onCorrect(a) {
+      document.getElementById("g4-word").innerHTML =
+        '<span class="blank">' + a[0].toUpperCase() + '</span> ' + a.slice(1).split("").join(" ");
+      const heEl = document.getElementById("g4-he");
+      if (heEl) heEl.textContent = (HE[a] || "—") + "  —  " + a;
+    }
   });
 
   // Game 5: Sentences — read the sentence, pick the matching picture
