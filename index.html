@@ -557,8 +557,19 @@
     "A pig is on a mat.":"חֲזִיר עַל מַחְצֶלֶת."
   };
 
-  // Pairs for the Memory game
-  const MEM = { "cat":"🐱","hat":"🎩","hen":"🐔","bag":"🎒","pen":"🖊️","sun":"☀️" };
+  // Pool for the Memory game — real, concrete objects from Games 1 & 2.
+  // 6 random pairs are chosen each time the board is built.
+  const MEM_POOL = {
+    // from Game 1
+    "dog":"🐕","sun":"☀️","goat":"🐐","bear":"🐻","milkshake":"🥤","moon":"🌙",
+    "horse":"🐴","hippo":"🦛","bird":"🐦","duck":"🦆","deer":"🦌","dolphin":"🐬",
+    "sandals":"👡","giraffe":"🦒","sheep":"🐑","spider":"🕷️","elevator":"🛗","lion":"🦁",
+    "cow":"🐮","mouse":"🐭","monkey":"🐵","snail":"🐌","elephant":"🐘","cactus":"🌵",
+    // from Game 2
+    "dad":"👨","bag":"🎒","cat":"🐱","egg":"🥚","hat":"🎩","can":"🥫","pan":"🍳",
+    "pen":"🖊️","cab":"🚕","hen":"🐔","ant":"🐜","tag":"🏷️","bat":"🦇","net":"🥅",
+    "bed":"🛏️","tap":"🚰","pet":"🐶"
+  };
 
   // extra Hebrew so the עב button works for every new picture
   const HE_EXTRA = {
@@ -682,10 +693,15 @@
     const again = document.getElementById(id + "-next");
     const scoreEl = document.getElementById(id + "-score");
     const movesEl = document.getElementById(id + "-moves");
-    const keys = Object.keys(MEM);
+    let pairs = {}, keys = [];
     let first = null, lock = false, matched = 0, moves = 0;
 
     function build() {
+      // pick 6 random pairs from the pool each time
+      keys = shuffle(Object.keys(MEM_POOL)).slice(0, 6);
+      pairs = {};
+      keys.forEach(k => pairs[k] = MEM_POOL[k]);
+
       matched = 0; moves = 0; first = null; lock = false;
       scoreEl.textContent = 0;
       movesEl.textContent = 0;
@@ -696,7 +712,7 @@
       const cards = [];
       keys.forEach(k => {
         cards.push({ k, face: k, type: "word" });
-        cards.push({ k, face: MEM[k], type: "pic" });
+        cards.push({ k, face: pairs[k], type: "pic" });
       });
       shuffle(cards);
 
